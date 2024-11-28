@@ -4,6 +4,7 @@ import os
 import time
 
 BROADCAST_PORT = 37020
+FILE_TRANSFER_PORT = 37021  # New port for file transfers
 BUFFER_SIZE = 1024
 
 def broadcast_presence():
@@ -32,9 +33,9 @@ def send_file(target_ip, file_path):
       while True:
         chunk = f.read(BUFFER_SIZE)
         if not chunk:
-          sock.sendto(b"EOF", (target_ip, BROADCAST_PORT))
+          sock.sendto(b"EOF", (target_ip, FILE_TRANSFER_PORT))
           break
-        sock.sendto(chunk, (target_ip, BROADCAST_PORT))
+        sock.sendto(chunk, (target_ip, FILE_TRANSFER_PORT))
       print(f"File {file_path} sent to {target_ip}")
 
 def receive_file(save_path):
@@ -42,7 +43,7 @@ def receive_file(save_path):
 
   with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind(("", BROADCAST_PORT))
+    sock.bind(("", FILE_TRANSFER_PORT))
     with open(save_path, 'wb') as f:
       while True:
         chunk, addr = sock.recvfrom(BUFFER_SIZE)
@@ -59,13 +60,15 @@ def main():
   command = input("Enter 'send' to send a file, 'receive' to receive a file, or 'exit' to quit: ")
   if command == 'send':
     target_ip = input("Enter the target device IP: ")
-    file_path = input("Enter the file path: ")
+    # file_path = input("Enter the file path: ")
+    file_path = "send.txt"
     if os.path.exists(file_path):
       send_file(target_ip, file_path)
     else:
       print("File does not exist.")
   elif command == 'receive':
-    save_path = input("Enter the path to save the received file: ")
+    # save_path = input("Enter the path to save the received file: ")
+    save_path = "receive/test.txt"
     receive_file(save_path)
   elif command == 'exit':
     return
